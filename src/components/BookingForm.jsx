@@ -1,5 +1,9 @@
 import { useState } from "react";
-import { formatBookingMessage, sendToWhatsApp } from "../utils/whatsapp";
+import {
+  formatBookingMessage,
+  sendToWhatsApp,
+  copyToClipboard,
+} from "../utils/whatsapp";
 
 function BookingForm({ onBack }) {
   const [formData, setFormData] = useState({
@@ -59,11 +63,29 @@ function BookingForm({ onBack }) {
     // Format the booking data for WhatsApp
     const whatsappMessage = formatBookingMessage(formData);
 
-    // Send to WhatsApp
-    sendToWhatsApp(whatsappMessage);
+    // Show user-friendly options
+    const userChoice = confirm(
+      "📱 Send your booking request to WhatsApp?\n\n" +
+        "✅ OK = Open WhatsApp automatically\n" +
+        "📋 Cancel = Copy message to clipboard (paste manually)\n\n" +
+        "Target: +254 741 027 920"
+    );
 
-    // Show success message
-    alert("Redirecting to WhatsApp to send your booking request!");
+    if (userChoice) {
+      // User chose to open WhatsApp automatically
+      sendToWhatsApp(whatsappMessage);
+      alert(
+        "Opening WhatsApp... If it doesn't open, use the 'Copy Message' button below."
+      );
+    } else {
+      // User chose to copy to clipboard
+      copyToClipboard(whatsappMessage);
+    }
+  };
+
+  const handleCopyMessage = () => {
+    const whatsappMessage = formatBookingMessage(formData);
+    copyToClipboard(whatsappMessage);
   };
 
   return (
@@ -472,7 +494,15 @@ function BookingForm({ onBack }) {
 
         <div className="form-footer">
           <button type="submit" className="submit-button">
-            Submit Booking
+            📱 Submit Booking
+          </button>
+          <button
+            type="button"
+            className="submit-button"
+            onClick={handleCopyMessage}
+            style={{ backgroundColor: "#6c757d" }}
+          >
+            📋 Copy Message
           </button>
           <button
             type="button"

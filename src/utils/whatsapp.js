@@ -10,7 +10,7 @@
  */
 
 // Default WhatsApp number - CHANGE THIS TO YOUR ACTUAL WHATSAPP NUMBER
-let WHATSAPP_NUMBER = "1234567890";
+let WHATSAPP_NUMBER = "254741027920"; // Kenya number format
 
 /**
  * Set the WhatsApp number for sending messages
@@ -130,10 +130,105 @@ export const generateWhatsAppURL = (message) => {
 };
 
 /**
- * Opens WhatsApp with the formatted message
+ * Generates alternative WhatsApp URL format for better compatibility
+ * @param {string} message - The message to send
+ * @returns {string} - Alternative WhatsApp URL
+ */
+export const generateWhatsAppURLAlt = (message) => {
+  const encodedMessage = encodeURIComponent(message);
+  return `https://api.whatsapp.com/send?phone=${WHATSAPP_NUMBER}&text=${encodedMessage}`;
+};
+
+/**
+ * Opens WhatsApp with the formatted message using multiple strategies
  * @param {string} message - The message to send
  */
 export const sendToWhatsApp = (message) => {
-  const whatsappURL = generateWhatsAppURL(message);
-  window.open(whatsappURL, '_blank');
+  // Strategy 1: Direct link creation and click
+  const createAndClickLink = (url) => {
+    const link = document.createElement('a');
+    link.href = url;
+    link.target = '_blank';
+    link.rel = 'noopener noreferrer';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  // Strategy 2: Window.open with immediate focus
+  const openWithFocus = (url) => {
+    const newWindow = window.open(url, '_blank', 'noopener,noreferrer');
+    if (newWindow) {
+      newWindow.focus();
+    }
+    return newWindow;
+  };
+
+
+
+  const primaryURL = generateWhatsAppURL(message);
+  const alternativeURL = generateWhatsAppURLAlt(message);
+
+  console.log('Attempting to open WhatsApp with URL:', primaryURL);
+
+  try {
+    // Try Strategy 1: Create and click link
+    createAndClickLink(primaryURL);
+
+    // Wait a moment and check if it worked, if not try alternatives
+    setTimeout(() => {
+      console.log('Trying alternative URL format...');
+      createAndClickLink(alternativeURL);
+    }, 1000);
+
+  } catch (error) {
+    console.error('Error with link creation, trying window.open...', error);
+
+    try {
+      // Try Strategy 2: Window.open
+      const newWindow = openWithFocus(primaryURL);
+
+      if (!newWindow || newWindow.closed || typeof newWindow.closed == 'undefined') {
+        console.log('Window.open failed, trying alternative URL...');
+        openWithFocus(alternativeURL);
+      }
+    } catch (error2) {
+      console.error('Window.open failed, offering manual copy...', error2);
+
+      // Fallback: Copy to clipboard and show instructions
+      copyToClipboard(message);
+      alert(
+        'WhatsApp could not be opened automatically.\n\n' +
+        'The message has been copied to your clipboard.\n\n' +
+        'Please:\n' +
+        '1. Open WhatsApp manually\n' +
+        '2. Go to chat with +254741027920\n' +
+        '3. Paste the message (Ctrl+V or Cmd+V)\n' +
+        '4. Send the message'
+      );
+    }
+  }
 };
+
+/**
+ * Copy WhatsApp message to clipboard as fallback
+ * @param {string} message - The message to copy
+ */
+export const copyToClipboard = async (message) => {
+  try {
+    await navigator.clipboard.writeText(message);
+    alert('Message copied to clipboard! You can paste it in WhatsApp manually.');
+  } catch (error) {
+    console.error('Failed to copy to clipboard:', error);
+    // Fallback for older browsers
+    const textArea = document.createElement('textarea');
+    textArea.value = message;
+    document.body.appendChild(textArea);
+    textArea.select();
+    document.execCommand('copy');
+    document.body.removeChild(textArea);
+    alert('Message copied to clipboard! You can paste it in WhatsApp manually.');
+  }
+};
+
+

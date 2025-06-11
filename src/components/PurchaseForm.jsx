@@ -1,5 +1,9 @@
 import { useState } from "react";
-import { formatPurchaseMessage, sendToWhatsApp } from "../utils/whatsapp";
+import {
+  formatPurchaseMessage,
+  sendToWhatsApp,
+  copyToClipboard,
+} from "../utils/whatsapp";
 
 function PurchaseForm({ onBack }) {
   const [formData, setFormData] = useState({
@@ -47,11 +51,29 @@ function PurchaseForm({ onBack }) {
     // Format the purchase data for WhatsApp
     const whatsappMessage = formatPurchaseMessage(formData);
 
-    // Send to WhatsApp
-    sendToWhatsApp(whatsappMessage);
+    // Show user-friendly options
+    const userChoice = confirm(
+      "📱 Send your purchase order to WhatsApp?\n\n" +
+        "✅ OK = Open WhatsApp automatically\n" +
+        "📋 Cancel = Copy message to clipboard (paste manually)\n\n" +
+        "Target: +254 741 027 920"
+    );
 
-    // Show success message
-    alert("Redirecting to WhatsApp to send your purchase order!");
+    if (userChoice) {
+      // User chose to open WhatsApp automatically
+      sendToWhatsApp(whatsappMessage);
+      alert(
+        "Opening WhatsApp... If it doesn't open, use the 'Copy Message' button below."
+      );
+    } else {
+      // User chose to copy to clipboard
+      copyToClipboard(whatsappMessage);
+    }
+  };
+
+  const handleCopyMessage = () => {
+    const whatsappMessage = formatPurchaseMessage(formData);
+    copyToClipboard(whatsappMessage);
   };
 
   return (
@@ -472,7 +494,15 @@ function PurchaseForm({ onBack }) {
 
         <div className="form-footer">
           <button type="submit" className="submit-button">
-            Submit Purchase Order
+            📱 Submit Purchase
+          </button>
+          <button
+            type="button"
+            className="submit-button"
+            onClick={handleCopyMessage}
+            style={{ backgroundColor: "#6c757d" }}
+          >
+            📋 Copy Message
           </button>
           <button
             type="button"

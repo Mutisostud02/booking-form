@@ -289,8 +289,9 @@ input[type="checkbox"] {
   display: flex;
   justify-content: flex-start;
   align-items: center;
-  gap: 16px;
+  gap: 12px;
   margin-top: 32px;
+  flex-wrap: wrap;
 }
 
 .submit-button {
